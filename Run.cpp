@@ -186,7 +186,7 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 		if (scene == PLAY)
 		{
 			// 10秒に1回出現
-			if (timer % 600 == 0 && goldFlag == 0)
+			if (timer % 600 == 250 && goldFlag == 0)
 			{
 				goldX = rand() % 180 + 270;
 				goldY = -40;
@@ -215,11 +215,12 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 					goldFlag = 0;
 				}
 			}
-		}// アメジストアイテム
+		}
+		// アメジストアイテム
 		if (scene == PLAY)
 		{
 			// 30秒に1回出現
-			if (timer % 1800 == 0 && amejisutoFlag == 0)
+			if (timer % 1800 == 500 && amejisutoFlag == 0)
 			{
 				amejisutoX = rand() % 180 + 270;
 				amejisutoY = -40;
@@ -253,7 +254,7 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 		if (scene == PLAY)
 		{
 			// 1分に1回出現
-			if (timer % 3600 == 0 && diamondFlag == 0)
+			if (timer % 3600 == 1000 && diamondFlag == 0)
 			{
 				diamondX = rand() % 180 + 270;
 				diamondY = -40;
@@ -307,8 +308,9 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 				goldY = -100;
 				diamondFlag = 0;
 				diamondY = -100;
-				amejisutoY = -100;
 				amejisutoFlag = 0;
+				amejisutoY = -100;
+
 				for (int i = 0; i < COM_MAX; i++)
 				{
 					computerX[i] = rand() % 180 + 270;
