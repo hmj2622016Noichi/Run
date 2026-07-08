@@ -17,18 +17,22 @@ int computerType[COM_MAX];
 int pointX = 0;
 int pointY = -100;
 int pointFlag = 0;
-// ダイヤ
-int diamondX = 0;
-int diamondY = -100;
-int diamondFlag = 0;
 // 金
 int goldX = 0;
 int goldY = -100;
 int goldFlag = 0;
+//エメラルド
+int EmerarudoX = 0;
+int EmerarudoY = -100;
+int EmerarudoFlag = 0;
 // アメジスト
 int amejisutoX = 0;
 int amejisutoY = -100;
 int amejisutoFlag = 0;
+// ダイヤ
+int diamondX = 0;
+int diamondY = -100;
+int diamondFlag = 0;
 // 車描画
 void drawCar(int x, int y, int type)
 {
@@ -67,6 +71,7 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 	int imgGold = LoadGraph("image/Gold.png");
 	int imgAmejisuto = LoadGraph("image/Amejisuto.png");
 	int imgDiamond = LoadGraph("image/Diamond.png");
+	int imgEmerarudo = LoadGraph("image/Emerarudo.png");
 	int playerW, playerH;
 	GetGraphSize(imgPlayer, &playerW, &playerH);
 
@@ -89,7 +94,7 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 	}
 	// ゲーム
 	int score = 0;
-	int highScore = 20000;
+	int highScore = 25000;
 	int bgY = 0;
 	enum{TITLE,PLAY,OVER};
 	int scene = TITLE;
@@ -204,7 +209,7 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 				if (abs(goldX - playerX) < PLAYER_W / 2 + 16 &&
 					abs(goldY - playerY) < PLAYER_H / 2 + 16)
 				{
-					score += 500;          // 金インゴットは300点
+					score += 400; // 金インゴットは400点
 					if (score > highScore)highScore = score;
 					PlaySoundMem(sePoint, DX_PLAYTYPE_BACK);
 					goldFlag = 0;
@@ -213,6 +218,39 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 				if (goldY > HEIGHT)
 				{
 					goldFlag = 0;
+				}
+			}
+		}
+		// エメラルド
+		if (scene == PLAY)
+		{
+			//20秒に1回出現
+			if (timer % 1200 == 220 && EmerarudoFlag == 0)
+			{
+				EmerarudoX = rand() % 180 + 270;
+				EmerarudoY = -40;
+				EmerarudoFlag = 1;
+			}
+
+			if (EmerarudoFlag)
+			{
+				EmerarudoY += 6;
+				int EmerarudoW, EmerarudoH;
+				GetGraphSize(imgEmerarudo, &EmerarudoW, &EmerarudoH);
+				DrawExtendGraph(EmerarudoX - EmerarudoW / 38,EmerarudoY - EmerarudoH / 38,EmerarudoX + EmerarudoW / 38,EmerarudoY + EmerarudoH / 38,imgEmerarudo,TRUE);
+				const int PLAYER_W = playerW / 3;
+				const int PLAYER_H = playerH / 3;
+				if (abs(EmerarudoX - playerX) < PLAYER_W / 2 + 16 &&abs(EmerarudoY - playerY) < PLAYER_H / 2 + 16)
+				{
+					score += 600;
+					if (score > highScore)highScore = score;
+					PlaySoundMem(sePoint, DX_PLAYTYPE_BACK);
+					EmerarudoFlag = 0;
+					EmerarudoY = -100;
+				}
+				if (EmerarudoY > HEIGHT)
+				{
+					EmerarudoFlag = 0;
 				}
 			}
 		}
@@ -243,7 +281,6 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 					amejisutoFlag = 0;
 					amejisutoY = -100;
 				}
-
 				if (amejisutoY > HEIGHT)
 				{
 					amejisutoFlag = 0;
@@ -291,6 +328,7 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 		switch (scene)
 		{
 		case TITLE:
+			drawText(100,100,191970,"ハイスコアを更新しよう",0,50);
 			drawText(170,160,0x1E90FF,"  Run",0,100);
 			if (timer % 60 < 30)
 			{
@@ -310,6 +348,8 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 				diamondY = -100;
 				amejisutoFlag = 0;
 				amejisutoY = -100;
+				EmerarudoFlag = 0;
+				EmerarudoY = -100;
 
 				for (int i = 0; i < COM_MAX; i++)
 				{
