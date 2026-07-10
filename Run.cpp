@@ -4,7 +4,7 @@
 
 // 車の種類
 enum { RED, YELLOW, BLUE, TRUCK };
-const int CAR_MAX = 4;
+const int CAR_MAX = 6;
 const int CAR_W[CAR_MAX] = { 32,26,26,40 };
 const int CAR_H[CAR_MAX] = { 48,48,48,100 };
 int imgCar[CAR_MAX];
@@ -175,7 +175,7 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 				const int PLAYER_H = playerH / 3;
 				if (abs(pointX - playerX) < PLAYER_W / 2 + 16 &&abs(pointY - playerY) < PLAYER_H / 2 + 16)
 				{
-					score += 100;
+					score += 100; // 100ポイント追加
 					if (score > highScore)	highScore = score;
 					PlaySoundMem(sePoint, DX_PLAYTYPE_BACK);
 					pointFlag = 0;
@@ -242,7 +242,7 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 				const int PLAYER_H = playerH / 3;
 				if (abs(EmerarudoX - playerX) < PLAYER_W / 2 + 16 &&abs(EmerarudoY - playerY) < PLAYER_H / 2 + 16)
 				{
-					score += 600;
+					score += 600; // 600点追加
 					if (score > highScore)highScore = score;
 					PlaySoundMem(sePoint, DX_PLAYTYPE_BACK);
 					EmerarudoFlag = 0;
@@ -275,7 +275,7 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 				const int PLAYER_H = playerH / 3;
 				if (abs(amejisutoX - playerX) < PLAYER_W / 2 + 16 &&abs(amejisutoY - playerY) < PLAYER_H / 2 + 16)
 				{
-					score += 1000;
+					score += 1000; // 1000点追加
 					if (score > highScore)highScore = score;
 					PlaySoundMem(sePoint, DX_PLAYTYPE_BACK);
 					amejisutoFlag = 0;
@@ -308,7 +308,7 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 				const int PLAYER_H = playerH / 3;
 				if (abs(diamondX - playerX) < PLAYER_W / 2 + 16 &&abs(diamondY - playerY) < PLAYER_H / 2 + 16)
 				{
-					score += 3000;      // ダイヤは3000点
+					score += 3000; // ダイヤは3000点
 					if (score > highScore)highScore = score;
 					PlaySoundMem(sePoint, DX_PLAYTYPE_BACK);
 					diamondFlag = 0;
@@ -327,6 +327,7 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 
 		switch (scene)
 		{
+		// タイトルシーン
 		case TITLE:
 			drawText(100,100,191970,"ハイスコアを更新しよう",0,50);
 			drawText(170,160,0x1E90FF,"  Run",0,100);
@@ -340,14 +341,19 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 				score = 0;
 				playerX = WIDTH / 2;
 				playerY = HEIGHT / 2;
+				// ポイント
 				pointFlag = 0;
 				pointY = -100;
+				// 金
 				goldFlag = 0;
 				goldY = -100;
+				// ダイヤモンド
 				diamondFlag = 0;
 				diamondY = -100;
+				// アメジスト
 				amejisutoFlag = 0;
 				amejisutoY = -100;
+				// エメラルド
 				EmerarudoFlag = 0;
 				EmerarudoY = -100;
 
@@ -363,9 +369,11 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 			}
 			break;
 
+		// プレイシーン
 		case PLAY:
 			break;
 
+		// ゲームオーバーシーン
 		case OVER:
 			drawText(150,220,0xFF0000,"GAME OVER",0,80);
 			if (timer > 180)
