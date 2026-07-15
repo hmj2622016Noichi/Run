@@ -1,18 +1,15 @@
 #include "DxLib.h"
 #include <stdlib.h>
 #include <time.h>
-
-// 車の種類
 enum { RED, YELLOW, BLUE, TRUCK };
-const int CAR_MAX = 6;
-const int CAR_W[CAR_MAX] = { 32,26,26,40 };
-const int CAR_H[CAR_MAX] = { 48,48,48,100 };
-int imgCar[CAR_MAX];
-const int COM_MAX = 6;
+const int CAR_MAX = 100;
+const int CAR_W[] = { 32,26,26,40 };
+const int CAR_H[] = { 48,48,48,100 };
+int imgCar[4];
+const int COM_MAX = CAR_MAX;
 int computerX[COM_MAX];
 int computerY[COM_MAX];
 int computerType[COM_MAX];
-
 // ポイント
 int pointX = 0;
 int pointY = -100;
@@ -21,7 +18,7 @@ int pointFlag = 0;
 int goldX = 0;
 int goldY = -100;
 int goldFlag = 0;
-//エメラルド
+// エメラルド
 int EmerarudoX = 0;
 int EmerarudoY = -100;
 int EmerarudoFlag = 0;
@@ -33,21 +30,22 @@ int amejisutoFlag = 0;
 int diamondX = 0;
 int diamondY = -100;
 int diamondFlag = 0;
-// 車描画
+// Void
+int VoidX = 0;
+int VoidY = -100;
+int VoidFlag = 0;
 void drawCar(int x, int y, int type)
 {
-	DrawGraph(x - CAR_W[type] / 2,y - CAR_H[type] / 2,imgCar[type],	TRUE);
+	DrawGraph(x - CAR_W[type] / 2,y - CAR_H[type] / 2,imgCar[type],TRUE);
 }
 
 // 文字描画
-void drawText(int x, int y, int col,
-const char* txt, int val, int siz)
+void drawText(int x,int y,int col,const char* txt,int val,int siz)
 {
 	SetFontSize(siz);
-	DrawFormatString(x + 2, y + 2, 0x000000, txt, val);
-	DrawFormatString(x, y, col, txt, val);
+	DrawFormatString(x + 2,y + 2,0x000000,txt,val);
+	DrawFormatString(x,y,col,txt,val);
 }
-
 int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,int nCmdShow)
 {
 	srand((unsigned)time(NULL));
@@ -72,38 +70,47 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 	int imgAmejisuto = LoadGraph("image/Amejisuto.png");
 	int imgDiamond = LoadGraph("image/Diamond.png");
 	int imgEmerarudo = LoadGraph("image/Emerarudo.png");
-	int playerW, playerH;
-	GetGraphSize(imgPlayer, &playerW, &playerH);
-
+	int imgVoid = LoadGraph("image/Void.png");
+	int playerW;
+	int playerH;
+	GetGraphSize(imgPlayer,&playerW,&playerH);
 	// サウンド
 	int bgm = LoadSoundMem("sound/bgm.mp3");
 	int jin = LoadSoundMem("sound/gameover.mp3");
 	int sePoint = LoadSoundMem("sound/fuel.mp3");
 	ChangeVolumeSoundMem(128, bgm);
 	ChangeVolumeSoundMem(128, jin);
-
 	// プレイヤー
 	int playerX = WIDTH / 2;
 	int playerY = HEIGHT / 2;
-	
 	for (int i = 0; i < COM_MAX; i++)
 	{
 		computerX[i] = rand() % 180 + 270;
 		computerY[i] = -(rand() % 800);
 		computerType[i] = YELLOW + rand() % 3;
 	}
-	// ゲーム
-	int score = 0;
-	int highScore = 25000;
+	int Money = 0;
+	int MostMoney = 45000;
 	int bgY = 0;
-	enum{TITLE,PLAY,OVER};
+	enum { TITLE, PLAY, OVER };
 	int scene = TITLE;
 	int timer = 0;
-
 	while (1)
 	{
+		// Moneyが10000増えるごとに車を1台追加
+		int carCount = 5 + Money / 10000;
+				// 最大台数を超えないようにする
+		if (carCount > COM_MAX)
+		{
+			carCount = COM_MAX;
+		}
+
 		ClearDrawScreen();
-		if (scene == PLAY)bgY = (bgY + 10) % HEIGHT;
+		if (scene == PLAY)
+		{
+			bgY = (bgY + 10) % HEIGHT;
+		}
+
 		DrawGraph(0, bgY - HEIGHT, imgBG, FALSE);
 		DrawGraph(0, bgY, imgBG, FALSE);
 		if (scene == PLAY)
@@ -114,17 +121,16 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 			if (playerY < 40) playerY = 40;
 			if (playerY > 600) playerY = 600;
 		}
-		DrawExtendGraph(	playerX - playerW / 6,playerY - playerH / 6,playerX + playerW / 6,playerY + playerH / 6,imgPlayer,TRUE);
-	
-	// 敵車
-		for (int i = 0; i < COM_MAX; i++)
+
+		DrawExtendGraph(playerX - playerW / 6,playerY - playerH / 6,playerX + playerW / 6,playerY + playerH / 6,imgPlayer,TRUE);
+		// 敵車
+		for (int i = 0; i < carCount; i++)
 		{
 			if (scene == PLAY)
 			{
-				// 一定速度で下へ移動
+				// 下へ移動
 				computerY[i] += 6;
-
-				// 画面外へ出たらランダム位置から再出現
+				// 画面外へ出たら再配置
 				if (computerY[i] > HEIGHT + 100)
 				{
 					computerX[i] = rand() % 180 + 270;
@@ -137,21 +143,30 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 				int dy = abs(computerY[i] - playerY);
 				const int PLAYER_W = playerW / 5;
 				const int PLAYER_H = playerH / 5;
-				int hitW = PLAYER_W / 2 +CAR_W[computerType[i]] / 2 - 8;
-				int hitH = PLAYER_H / 2 +CAR_H[computerType[i]] / 2 - 8;
-				// 当たったら即ゲームオーバー
+				int hitW = PLAYER_W / 2 + CAR_W[computerType[i]] / 2 - 8;
+				int hitH = PLAYER_H / 2 + CAR_H[computerType[i]] / 2 - 8;
 				if (dx < hitW && dy < hitH)
 				{
-					scene = OVER;
-					timer = 0;
-					StopSoundMem(bgm);
-					PlaySoundMem(jin, DX_PLAYTYPE_BACK);
+					Money -= 1000;
+					computerX[i] = rand() % 180 + 270;
+					computerY[i] = -(rand() % 500 + 100);
+					computerType[i] = YELLOW + rand() % 3;
+					if (Money < 0)
+					{
+						scene = OVER;
+						timer = 0;
+						StopSoundMem(bgm);
+						PlaySoundMem(jin, DX_PLAYTYPE_BACK);
+					}
 				}
 			}
 			else
 			{
 				computerY[i]--;
-				if (computerY[i] < -100)computerY[i] = HEIGHT + 100;
+				if (computerY[i] < -100)
+				{
+					computerY[i] = HEIGHT + 100;
+				}
 			}
 			drawCar(computerX[i],computerY[i],computerType[i]);
 		}
@@ -165,29 +180,37 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 				pointY = -40;
 				pointFlag = 1;
 			}
+
 			if (pointFlag)
 			{
 				pointY += 6;
+
 				int pointW, pointH;
 				GetGraphSize(imgPoint, &pointW, &pointH);
+
 				DrawExtendGraph(pointX - pointW / 35,pointY - pointH / 35,pointX + pointW / 35,pointY + pointH / 35,imgPoint,TRUE);
 				const int PLAYER_W = playerW / 3;
 				const int PLAYER_H = playerH / 3;
-				if (abs(pointX - playerX) < PLAYER_W / 2 + 16 &&abs(pointY - playerY) < PLAYER_H / 2 + 16)
+				if (abs(pointX - playerX) < PLAYER_W / 2 + 16 &&
+					abs(pointY - playerY) < PLAYER_H / 2 + 16)
 				{
-					score += 100; // 100ポイント追加
-					if (score > highScore)	highScore = score;
+					Money += 200;
+					if (Money > MostMoney)
+					{
+						MostMoney = Money;
+					}
 					PlaySoundMem(sePoint, DX_PLAYTYPE_BACK);
 					pointFlag = 0;
 					pointY = -100;
 				}
+
 				if (pointY > HEIGHT)
 				{
 					pointFlag = 0;
 				}
 			}
 		}
-		// 金インゴット
+	   // 金インゴット
 		if (scene == PLAY)
 		{
 			// 10秒に1回出現
@@ -206,11 +229,13 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 				DrawExtendGraph(goldX - goldW / 25,goldY - goldH / 25,goldX + goldW / 25,goldY + goldH / 25,imgGold,TRUE);
 				const int PLAYER_W = playerW / 3;
 				const int PLAYER_H = playerH / 3;
-				if (abs(goldX - playerX) < PLAYER_W / 2 + 16 &&
-					abs(goldY - playerY) < PLAYER_H / 2 + 16)
+				if (abs(goldX - playerX) < PLAYER_W / 2 + 16 &&abs(goldY - playerY) < PLAYER_H / 2 + 16)
 				{
-					score += 400; // 金インゴットは400点
-					if (score > highScore)highScore = score;
+					Money += 400;
+					if (Money > MostMoney)
+					{
+						MostMoney = Money;
+					}
 					PlaySoundMem(sePoint, DX_PLAYTYPE_BACK);
 					goldFlag = 0;
 					goldY = -100;
@@ -224,7 +249,7 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 		// エメラルド
 		if (scene == PLAY)
 		{
-			//20秒に1回出現
+			// 20秒に1回出現
 			if (timer % 1200 == 220 && EmerarudoFlag == 0)
 			{
 				EmerarudoX = rand() % 180 + 270;
@@ -236,14 +261,17 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 			{
 				EmerarudoY += 6;
 				int EmerarudoW, EmerarudoH;
-				GetGraphSize(imgEmerarudo, &EmerarudoW, &EmerarudoH);
+				GetGraphSize(imgEmerarudo,&EmerarudoW,&EmerarudoH);
 				DrawExtendGraph(EmerarudoX - EmerarudoW / 38,EmerarudoY - EmerarudoH / 38,EmerarudoX + EmerarudoW / 38,EmerarudoY + EmerarudoH / 38,imgEmerarudo,TRUE);
 				const int PLAYER_W = playerW / 3;
 				const int PLAYER_H = playerH / 3;
 				if (abs(EmerarudoX - playerX) < PLAYER_W / 2 + 16 &&abs(EmerarudoY - playerY) < PLAYER_H / 2 + 16)
 				{
-					score += 600; // 600点追加
-					if (score > highScore)highScore = score;
+					Money += 800;
+					if (Money > MostMoney)
+					{
+						MostMoney = Money;
+					}
 					PlaySoundMem(sePoint, DX_PLAYTYPE_BACK);
 					EmerarudoFlag = 0;
 					EmerarudoY = -100;
@@ -269,14 +297,17 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 			{
 				amejisutoY += 6;
 				int amejisutoW, amejisutoH;
-				GetGraphSize(imgAmejisuto, &amejisutoW, &amejisutoH);
+				GetGraphSize(imgAmejisuto,&amejisutoW,&amejisutoH);
 				DrawExtendGraph(amejisutoX - amejisutoW / 20,amejisutoY - amejisutoH / 20,amejisutoX + amejisutoW / 20,amejisutoY + amejisutoH / 20,imgAmejisuto,TRUE);
 				const int PLAYER_W = playerW / 3;
 				const int PLAYER_H = playerH / 3;
 				if (abs(amejisutoX - playerX) < PLAYER_W / 2 + 16 &&abs(amejisutoY - playerY) < PLAYER_H / 2 + 16)
 				{
-					score += 1000; // 1000点追加
-					if (score > highScore)highScore = score;
+					Money += 1000;
+					if (Money > MostMoney)
+					{
+						MostMoney = Money;
+					}
 					PlaySoundMem(sePoint, DX_PLAYTYPE_BACK);
 					amejisutoFlag = 0;
 					amejisutoY = -100;
@@ -297,38 +328,74 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 				diamondY = -40;
 				diamondFlag = 1;
 			}
-
 			if (diamondFlag)
 			{
 				diamondY += 6;
+
 				int diamondW, diamondH;
-				GetGraphSize(imgDiamond, &diamondW, &diamondH);
+				GetGraphSize(imgDiamond,&diamondW,&diamondH);
 				DrawExtendGraph(diamondX - diamondW / 15,diamondY - diamondH / 15,diamondX + diamondW / 15,diamondY + diamondH / 15,imgDiamond,TRUE);
 				const int PLAYER_W = playerW / 3;
 				const int PLAYER_H = playerH / 3;
 				if (abs(diamondX - playerX) < PLAYER_W / 2 + 16 &&abs(diamondY - playerY) < PLAYER_H / 2 + 16)
 				{
-					score += 3000; // ダイヤは3000点
-					if (score > highScore)highScore = score;
+					Money += 5000;
+					if (Money > MostMoney)
+					{
+						MostMoney = Money;
+					}
 					PlaySoundMem(sePoint, DX_PLAYTYPE_BACK);
 					diamondFlag = 0;
 					diamondY = -100;
 				}
-
 				if (diamondY > HEIGHT)
 				{
 					diamondFlag = 0;
 				}
 			}
 		}
-
+	  // Voidアイテム
+		if (scene == PLAY)
+		{
+			// 1分30秒に1回出現
+			if (timer % 5400 == 3550 && VoidFlag == 0)
+			{
+				VoidX = rand() % 180 + 270;
+				VoidY = -40;
+				VoidFlag = 1;
+			}
+			if (VoidFlag)
+			{
+				VoidY += 6;
+				int voidW, voidH;
+				GetGraphSize(imgVoid, &voidW, &voidH);
+				DrawExtendGraph(VoidX - voidW / 15,VoidY - voidH / 15,VoidX + voidW / 15,VoidY + voidH / 15,imgVoid,TRUE);
+				const int PLAYER_W = playerW / 3;
+				const int PLAYER_H = playerH / 3;
+				if (abs(VoidX - playerX) < PLAYER_W / 2 + 16 &&abs(VoidY - playerY) < PLAYER_H / 2 + 16)
+				{
+					Money += 10000;
+					if (Money > MostMoney)
+					{
+						MostMoney = Money;
+					}
+					PlaySoundMem(sePoint, DX_PLAYTYPE_BACK);
+					VoidFlag = 0;
+					VoidY = -100;
+				}
+				if (VoidY > HEIGHT)
+				{
+					VoidFlag = 0;
+				}
+			}
+		}
 		timer++;
 		// シーン処理
-
 		switch (scene)
 		{
 		// タイトルシーン
 		case TITLE:
+
 			drawText(100,100,191970,"ハイスコアを更新しよう",0,50);
 			drawText(170,160,0x1E90FF,"  Run",0,100);
 			if (timer % 60 < 30)
@@ -338,25 +405,28 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 
 			if (GetMouseInput() & MOUSE_INPUT_LEFT)
 			{
-				score = 0;
+				Money = 0;
 				playerX = WIDTH / 2;
 				playerY = HEIGHT / 2;
-				// ポイント
+				// アイテム初期化
 				pointFlag = 0;
 				pointY = -100;
-				// 金
+
 				goldFlag = 0;
 				goldY = -100;
-				// ダイヤモンド
-				diamondFlag = 0;
-				diamondY = -100;
-				// アメジスト
-				amejisutoFlag = 0;
-				amejisutoY = -100;
-				// エメラルド
+
 				EmerarudoFlag = 0;
 				EmerarudoY = -100;
 
+				amejisutoFlag = 0;
+				amejisutoY = -100;
+
+				diamondFlag = 0;
+				diamondY = -100;
+
+				VoidFlag = 0;
+				VoidY = -100;
+				// 敵車初期化
 				for (int i = 0; i < COM_MAX; i++)
 				{
 					computerX[i] = rand() % 180 + 270;
@@ -365,15 +435,14 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 				}
 				timer = 0;
 				scene = PLAY;
-				PlaySoundMem(bgm, DX_PLAYTYPE_LOOP);
+				PlaySoundMem(bgm,DX_PLAYTYPE_LOOP);
 			}
-			break;
 
-		// プレイシーン
+			break;
+	   // プレイシーン
 		case PLAY:
 			break;
-
-		// ゲームオーバーシーン
+			// ゲームオーバー
 		case OVER:
 			drawText(150,220,0xFF0000,"GAME OVER",0,80);
 			if (timer > 180)
@@ -383,20 +452,22 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 			}
 			break;
 		}
-
 		// スコア表示
-		drawText(10,10,0x00FFFF,"SCORE %d",score,30);
-		drawText(WIDTH - 200,10,0xFFFF00,"HI-SC %d",highScore,30);
-
-		// 画面更新
+		drawText(10,10,0x7CFC00,"Money %d",Money,30);
+		drawText(WIDTH - 250,10,0x32CD32,"Most Money %d",MostMoney,30);
+	 // 画面更新
 		ScreenFlip();
 		WaitTimer(16);
 		if (ProcessMessage() == -1)
+		{
 			break;
+		}
 		if (CheckHitKey(KEY_INPUT_ESCAPE))
+		{
 			break;
+		}
 	}
-	// 終了
+	// 終了処理
 	StopSoundMem(bgm);
 	DxLib_End();
 	return 0;

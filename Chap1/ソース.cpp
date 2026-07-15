@@ -1,12 +1,22 @@
 #include <iostream>
 
-int main()
-{
-	//コンソールにHALLOW WORLD
-	std::cout << "Hello, world" << std::endl;
+//void hello_world()
+//{
+//	std::cout << "hello, world" << std::endl;
+//}
+//
+//int main()
+//{
+//	// hello_wold関数呼び出し
+//}
 
-	int value1(150);
-	int value2 = 150;
-	int value3{ 150 };
-	int value4 = { 159 };
+// sum関数を呼び出し
+int  main()
+{
+	int i = 42;
+
+	std::cout << "++i:" << ++i << std::endl; 
+	std::cout << "i:" << i << std::endl;
+	std::cout << "i++:" << i++ << std::endl;
+	std::cout << "i:" << i << std::endl;
 }
